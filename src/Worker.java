@@ -1,46 +1,175 @@
 import java.io.*;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Objects;
+import java.util.TimeZone;
 
 public class Worker extends Thread {
     Socket socket;
-    String content;
+    final BufferedWriter bw;
+    static final String ROOT_DIR = "root/";
+    static final int CHUNK_SIZE = 4096;
 
-    public Worker(Socket socket, String content) {
+    public Worker(Socket socket, BufferedWriter bw) {
         this.socket = socket;
-        this.content = content;
+        this.bw = bw;
     }
 
+    @Override
     public void run() {
-        // buffers
         try {
-            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            PrintWriter pr = new PrintWriter(socket.getOutputStream());
-            String input = in.readLine();
-            System.out.println("input : " + input);
-
-            // String content = "<html>Hello</html>";
-            if (input == null) return;
-            if (!input.isEmpty()) {
-                if (input.startsWith("GET")) {
-                    pr.write("HTTP/1.1 200 OK\r\n");
-                    pr.write("Server: Java HTTP Server: 1.0\r\n");
-                    pr.write("Date: " + new Date() + "\r\n");
-                    pr.write("Content-Type: text/html\r\n");
-                    pr.write("Content-Length: " + content.length() + "\r\n");
-                    pr.write("\r\n");
-                    pr.write(content);
-                    pr.flush();
-                }
-
-                else {
-
-                }
-            }
-
-            socket.close();
+            handleRequest(socket);
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void handleRequest(Socket socket) throws IOException {
+        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        OutputStream out = socket.getOutputStream();
+        PrintWriter pr = new PrintWriter(out);
+
+        String requestLine = in.readLine();
+
+        if(requestLine != null) {
+            String headerLine;
+            StringBuilder headers;
+            headers = new StringBuilder();
+
+            while (!(headerLine = in.readLine()).isEmpty()) {
+                headers.append(headerLine).append("\r\n");
+            }
+
+            synchronized (bw) {
+                bw.write(requestLine);
+                bw.newLine();
+//                bw.write(headers.toString());
+                bw.newLine();
+                bw.flush();
+            }
+        }
+
+        if (requestLine == null || !requestLine.startsWith("GET")) {
+            sendErrorResponse(pr, "400 Bad Request");
+            return;
+        }
+
+        String[] requestParts = requestLine.split(" ");
+        String filePath = requestParts[1];
+        File file = new File(ROOT_DIR + filePath);
+
+        if (file.isDirectory())
+            sendDirectoryListing(pr, file);
+        else if (file.exists())
+            sendFileResponse(out, file);
+        else
+            sendErrorResponse(pr, "404 Not Found");
+
+        socket.close();
+    }
+
+    private void sendFileResponse(OutputStream out, File file) throws IOException {
+        String contentType = Files.probeContentType(file.toPath());
+
+        if (contentType == null)
+            contentType = "application/octet-stream";
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
+        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+
+        String date = dateFormat.format(new Date());
+        String lastModified = dateFormat.format(new Date(file.lastModified()));
+        long contentLength = file.length();
+        String eTag = "\"" + Integer.toHexString(file.hashCode()) + "-" + Long.toHexString(contentLength) + "\"";
+
+        StringBuilder response = getStringBuilder(file, date, lastModified, contentLength, eTag, contentType);
+
+        synchronized (bw) {
+            bw.write(response.toString());
+            bw.newLine();
+            bw.flush();
+        }
+
+        PrintWriter pr = new PrintWriter(out);
+        pr.write(response.toString());
+        pr.flush();
+
+        try (FileInputStream fis = new FileInputStream(file)) {
+            byte[] buffer = new byte[CHUNK_SIZE];
+            int bytesRead;
+
+            while ((bytesRead = fis.read(buffer)) != -1)
+                out.write(buffer, 0, bytesRead);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void sendDirectoryListing(PrintWriter pr, File dir) throws IOException {
+        StringBuilder body = new StringBuilder();
+
+        body.append("<html><body><ul>\n");
+        for (File file : Objects.requireNonNull(dir.listFiles())) {
+            if (file.isDirectory())
+                body.append("<li><b><i><a href=\"").append(file.getName()).append("/\">").append(file.getName()).append("</a></i></b></li>\r\n");
+            else
+                body.append("<li><a href=\"").append(file.getName()).append("\">").append(file.getName()).append("</a></li>\r\n");
+        }
+        body.append("</ul></body></html>\r\n");
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
+        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+
+        String date = dateFormat.format(new Date());
+        String lastModified = dateFormat.format(new Date(dir.lastModified()));
+        long contentLength = body.toString().length();
+        String eTag = "\"" + Integer.toHexString(dir.hashCode()) + "-" + Long.toHexString(contentLength) + "\"";
+
+        StringBuilder response = getStringBuilder(dir, date, lastModified, contentLength, eTag, "text/html");
+
+        response.append(body);
+
+        synchronized (bw) {
+            bw.write(response.toString());
+            bw.newLine();
+            bw.flush();
+        }
+
+        pr.write(response.toString());
+        pr.flush();
+    }
+
+    private static StringBuilder getStringBuilder(File dir, String date, String lastModified, long contentLength, String eTag, String contentType) {
+        return new StringBuilder(
+                "HTTP/1.0 200 OK\r\n" +
+                        "MIME-Version: 1.0\r\n" +
+                        "Date: " + date + "\r\n" +
+                        "Server: FileServer/1.0\r\n" +
+                        "Last-Modified: " + lastModified + "\r\n" +
+                        "ETag: " + eTag + "\r\n" +
+                        "Accept-Ranges: bytes\r\n" +
+                        "Content-Length: " + contentLength + "\r\n" +
+                        "Content-Type: " + contentType + "\r\n" +
+                        "\r\n"
+        );
+    }
+
+    private void sendErrorResponse(PrintWriter pr, String status) throws IOException {
+        String response = "HTTP/1.0 " + status + "\r\n" +
+                "Content-Type: text/html\r\n" +
+                "\r\n";
+
+        synchronized (bw) {
+            bw.write(response);
+            bw.newLine();
+            bw.flush();
+        }
+
+        pr.write(response);
+        pr.println("<html><body><h1>" + status + "</h1></body></html>");
+        pr.flush();
     }
 }
