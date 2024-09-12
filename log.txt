@@ -1,8 +1,45 @@
-UPLOAD file1.txt
+GET / HTTP/1.1
 
-UPLOAD img1.png
+HTTP/1.0 200 OK
+MIME-Version: 1.0
+Date: Thu, 12 Sep 2024 16:06:06 GMT
+Server: FileServer/1.0
+Last-Modified: Wed, 11 Sep 2024 15:40:04 GMT
+ETag: "275573-120"
+Accept-Ranges: bytes
+Content-Length: 288
+Content-Type: text/html
 
-UPLOAD file2.txt
+<html>
+	<head>
+		<title>root</title>
+	</head>
+	<body>
+		<ul>
+			<li><b><i><a href="dir1/">dir1</a></i></b></li>
+			<li><a href="doc1.docx">doc1.docx</a></li>
+			<li><a href="file1.txt">file1.txt</a></li>
+			<li><a href="img1.png">img1.png</a></li>
+		</ul>
+	</body>
+</html>
 
-UPLOAD file1.txt
+
+GET /file4.txt HTTP/1.1
+
+HTTP/1.0 404 Not Found
+MIME-Version: 1.0
+Date: Thu, 12 Sep 2024 16:06:18 GMT
+Server: FileServer/1.0
+Accept-Ranges: bytes
+Content-Type: text/html
+
+<html>
+	<head>
+		<title>404 Not Found</title>
+	</head>
+	<body>
+		<h1>404 Not Found</h1>
+	</body>
+</html>
 

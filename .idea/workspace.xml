@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a97e142-cf74-4ee5-8434-57b663b237e4" name="Changes" comment="Task 1 Accomplished">
-      <change afterPath="$PROJECT_DIR$/src/FileUploader.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/TestClient.java" afterDir="false" />
+    <list default="true" id="6a97e142-cf74-4ee5-8434-57b663b237e4" name="Changes" comment="Refractored TestClient to Client">
+      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/log.txt" beforeDir="false" afterPath="$PROJECT_DIR$/log.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Client.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Client.java" afterDir="false" />
@@ -65,6 +64,7 @@
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "git-widget-placeholder": "master",
     "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "E:/BUET/Level 3/Term 2/Sessional/CSE 322/Socket Programming/httpdemo",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -90,7 +90,7 @@
       <option name="presentableId" value="Default" />
       <updated>1725990151092</updated>
       <workItem from="1725990152211" duration="4299000" />
-      <workItem from="1726059204829" duration="38385000" />
+      <workItem from="1726059204829" duration="48388000" />
     </task>
     <task id="LOCAL-00001" summary="Added Threading to HTTPServer">
       <option name="closed" value="true" />
@@ -124,7 +124,23 @@
       <option name="project" value="LOCAL" />
       <updated>1726139229407</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Achieved File Upload">
+      <option name="closed" value="true" />
+      <created>1726144097740</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1726144097740</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Refractored TestClient to Client">
+      <option name="closed" value="true" />
+      <created>1726146982206</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1726146982206</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -135,6 +151,8 @@
     <MESSAGE value="Trying to Solve Socket Closing Error" />
     <MESSAGE value="Added Newlines to html elements" />
     <MESSAGE value="Task 1 Accomplished" />
-    <option name="LAST_COMMIT_MESSAGE" value="Task 1 Accomplished" />
+    <MESSAGE value="Achieved File Upload" />
+    <MESSAGE value="Refractored TestClient to Client" />
+    <option name="LAST_COMMIT_MESSAGE" value="Refractored TestClient to Client" />
   </component>
 </project>

@@ -63,14 +63,13 @@ public class Worker extends Thread {
                 sendFileResponse(out, file, date, dateFormat);
             else
                 sendErrorResponse(pr, "404 Not Found", date);
-        } else if (requestLine.startsWith("UPLOAD")) {
+        }
+
+        else if (requestLine.startsWith("UPLOAD")) {
             File uploadDir = new File(UPLOAD_DIR);
+
             if (!uploadDir.exists()) {
                 boolean created = uploadDir.mkdirs();
-                if (!created) {
-                    System.out.println("Failed to create upload directory.");
-                    return;
-                }
             }
 
             File file = new File(UPLOAD_DIR + filePath);
@@ -78,24 +77,33 @@ public class Worker extends Thread {
             try (FileOutputStream fos = new FileOutputStream(file)) {
                 byte[] buffer = new byte[CHUNK_SIZE];
                 int bytesRead;
+                int count = 0;
 
                 InputStream inputStream = socket.getInputStream();
+
                 while ((bytesRead = inputStream.read(buffer)) != -1) {
                     fos.write(buffer, 0, bytesRead);
+                    count += bytesRead;
                 }
 
                 fos.flush();
+
+                System.out.println("Received " + count + " bytes of file: " + file.getName());
+
             } catch (IOException e) {
                 e.printStackTrace();
                 sendErrorResponse(pr, "500 Internal Server Error", date);
             }
-
-            System.out.println("File received: " + filePath);
-        } else {
-            sendErrorResponse(pr, "501 Not Implemented", date);
         }
 
+        else
+            sendErrorResponse(pr, "501 Not Implemented", date);
+
         socket.close();
+
+        String clientHost = socket.getInetAddress().getHostAddress();
+        int clientPort = socket.getPort();
+        System.out.println("Client closed from host: " + clientHost + " and port: " + clientPort);
     }
 
 
@@ -113,7 +121,7 @@ public class Worker extends Thread {
 
         synchronized (bw) {
             bw.write(response.toString());
-            bw.newLine();
+            bw.write("\r\n");
             bw.flush();
         }
 
