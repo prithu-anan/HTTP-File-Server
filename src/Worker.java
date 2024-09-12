@@ -31,6 +31,10 @@ public class Worker extends Thread {
         OutputStream out = socket.getOutputStream();
         PrintWriter pr = new PrintWriter(out);
 
+        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
+        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+        String date = dateFormat.format(new Date());
+
         String requestLine = in.readLine();
 
         if(requestLine != null) {
@@ -52,7 +56,7 @@ public class Worker extends Thread {
         }
 
         if (requestLine == null || !requestLine.startsWith("GET")) {
-            sendErrorResponse(pr, "400 Bad Request");
+            sendErrorResponse(pr, "400 Bad Request", date);
             return;
         }
 
@@ -61,25 +65,21 @@ public class Worker extends Thread {
         File file = new File(ROOT_DIR + filePath);
 
         if (file.isDirectory())
-            sendDirectoryListing(pr, file);
+            sendDirectoryListing(pr, file, date, dateFormat);
         else if (file.exists())
-            sendFileResponse(out, file);
+            sendFileResponse(out, file, date, dateFormat);
         else
-            sendErrorResponse(pr, "404 Not Found");
+            sendErrorResponse(pr, "404 Not Found", date);
 
         socket.close();
     }
 
-    private void sendFileResponse(OutputStream out, File file) throws IOException {
+    private void sendFileResponse(OutputStream out, File file, String date, SimpleDateFormat dateFormat) throws IOException {
         String contentType = Files.probeContentType(file.toPath());
 
         if (contentType == null)
             contentType = "application/octet-stream";
 
-        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
-        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-
-        String date = dateFormat.format(new Date());
         String lastModified = dateFormat.format(new Date(file.lastModified()));
         long contentLength = file.length();
         String eTag = "\"" + Integer.toHexString(file.hashCode()) + "-" + Long.toHexString(contentLength) + "\"";
@@ -108,33 +108,33 @@ public class Worker extends Thread {
         }
     }
 
-    private void sendDirectoryListing(PrintWriter pr, File dir) throws IOException {
+    private void sendDirectoryListing(PrintWriter pr, File dir, String date, SimpleDateFormat dateFormat) throws IOException {
         StringBuilder body = new StringBuilder();
 
-        body.append("<html><body><ul>\n");
+        body.append("<html>\r\n");
+        body.append("<head>\r\n");
+        body.append("<title>").append(dir.getName()).append("</title>\r\n");
+        body.append("</head>\r\n");
+        body.append("<body>\r\n");
+        body.append("<ul>\r\n");
         for (File file : Objects.requireNonNull(dir.listFiles())) {
             if (file.isDirectory())
                 body.append("<li><b><i><a href=\"").append(file.getName()).append("/\">").append(file.getName()).append("</a></i></b></li>\r\n");
             else
                 body.append("<li><a href=\"").append(file.getName()).append("\">").append(file.getName()).append("</a></li>\r\n");
         }
-        body.append("</ul></body></html>\r\n");
+        body.append("</ul>\r\n</body>\r\n</html>\r\n\r\n");
 
-        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
-        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-
-        String date = dateFormat.format(new Date());
         String lastModified = dateFormat.format(new Date(dir.lastModified()));
         long contentLength = body.toString().length();
         String eTag = "\"" + Integer.toHexString(dir.hashCode()) + "-" + Long.toHexString(contentLength) + "\"";
 
         StringBuilder response = getStringBuilder(dir, date, lastModified, contentLength, eTag, "text/html");
-
         response.append(body);
 
         synchronized (bw) {
             bw.write(response.toString());
-            bw.newLine();
+            bw.write("\r\n");
             bw.flush();
         }
 
@@ -144,32 +144,39 @@ public class Worker extends Thread {
 
     private static StringBuilder getStringBuilder(File dir, String date, String lastModified, long contentLength, String eTag, String contentType) {
         return new StringBuilder(
-                "HTTP/1.0 200 OK\r\n" +
-                        "MIME-Version: 1.0\r\n" +
-                        "Date: " + date + "\r\n" +
-                        "Server: FileServer/1.0\r\n" +
-                        "Last-Modified: " + lastModified + "\r\n" +
-                        "ETag: " + eTag + "\r\n" +
-                        "Accept-Ranges: bytes\r\n" +
-                        "Content-Length: " + contentLength + "\r\n" +
-                        "Content-Type: " + contentType + "\r\n" +
-                        "\r\n"
+                            "HTTP/1.0 200 OK\r\n" +
+                            "MIME-Version: 1.0\r\n" +
+                            "Date: " + date + "\r\n" +
+                            "Server: FileServer/1.0\r\n" +
+                            "Last-Modified: " + lastModified + "\r\n" +
+                            "ETag: " + eTag + "\r\n" +
+                            "Accept-Ranges: bytes\r\n" +
+                            "Content-Length: " + contentLength + "\r\n" +
+                            "Content-Type: " + contentType + "\r\n" +
+                            "\r\n"
         );
     }
 
-    private void sendErrorResponse(PrintWriter pr, String status) throws IOException {
-        String response = "HTTP/1.0 " + status + "\r\n" +
-                "Content-Type: text/html\r\n" +
-                "\r\n";
+    private void sendErrorResponse(PrintWriter pr, String status, String date) throws IOException {
+        String response =   "HTTP/1.0 " + status + "\r\n" +
+                            "MIME-Version: 1.0\r\n" +
+                            "Date: " + date + "\r\n" +
+                            "Server: FileServer/1.0\r\n" +
+                            "Content-Type: text/html\r\n" +
+                            "\r\n" +
+                            "<html>\r\n" +
+                            "<body>\r\n" +
+                            "<h1>" + status + "</h1>\r\n" +
+                            "</body>\r\n" +
+                            "</html>\r\n";
 
         synchronized (bw) {
             bw.write(response);
-            bw.newLine();
+            bw.write("\r\n");
             bw.flush();
         }
 
         pr.write(response);
-        pr.println("<html><body><h1>" + status + "</h1></body></html>");
         pr.flush();
     }
 }

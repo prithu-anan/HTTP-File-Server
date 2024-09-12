@@ -1,0 +1,116 @@
+GET / HTTP/1.1
+
+HTTP/1.0 200 OK
+MIME-Version: 1.0
+Date: Thu, 12 Sep 2024 10:30:19 GMT
+Server: FileServer/1.0
+Last-Modified: Wed, 11 Sep 2024 15:40:04 GMT
+ETag: "275573-10a"
+Accept-Ranges: bytes
+Content-Length: 266
+Content-Type: text/html
+
+<html>
+<head>
+<title>root</title>
+</head>
+<body>
+<ul>
+<li><b><i><a href="dir1/">dir1</a></i></b></li>
+<li><a href="doc1.docx">doc1.docx</a></li>
+<li><a href="file1.txt">file1.txt</a></li>
+<li><a href="img1.png">img1.png</a></li>
+</ul>
+</body>
+</html>
+
+
+GET /img1.png HTTP/1.1
+
+HTTP/1.0 200 OK
+MIME-Version: 1.0
+Date: Thu, 12 Sep 2024 10:30:37 GMT
+Server: FileServer/1.0
+Last-Modified: Wed, 11 Sep 2024 13:34:11 GMT
+ETag: "e945f352-4a0ae"
+Accept-Ranges: bytes
+Content-Length: 303278
+Content-Type: image/png
+
+
+GET /doc1.docx HTTP/1.1
+
+HTTP/1.0 200 OK
+MIME-Version: 1.0
+Date: Thu, 12 Sep 2024 10:30:40 GMT
+Server: FileServer/1.0
+Last-Modified: Tue, 03 Sep 2024 08:12:08 GMT
+ETag: "5849570a-2bfc"
+Accept-Ranges: bytes
+Content-Length: 11260
+Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+
+
+GET /file1.txt HTTP/1.1
+
+HTTP/1.0 200 OK
+MIME-Version: 1.0
+Date: Thu, 12 Sep 2024 10:30:54 GMT
+Server: FileServer/1.0
+Last-Modified: Tue, 03 Sep 2024 08:12:08 GMT
+ETag: "4691ed2c-4"
+Accept-Ranges: bytes
+Content-Length: 4
+Content-Type: text/plain
+
+
+GET /dir1/ HTTP/1.1
+
+HTTP/1.0 200 OK
+MIME-Version: 1.0
+Date: Thu, 12 Sep 2024 10:30:55 GMT
+Server: FileServer/1.0
+Last-Modified: Tue, 10 Sep 2024 18:20:30 GMT
+ETag: "cc33ee6f-b4"
+Accept-Ranges: bytes
+Content-Length: 180
+Content-Type: text/html
+
+<html>
+<head>
+<title>dir1</title>
+</head>
+<body>
+<ul>
+<li><b><i><a href="dir2/">dir2</a></i></b></li>
+<li><a href="file2.txt">file2.txt</a></li>
+</ul>
+</body>
+</html>
+
+
+GET /dir1/dir2/ HTTP/1.1
+
+HTTP/1.0 200 OK
+MIME-Version: 1.0
+Date: Thu, 12 Sep 2024 10:30:56 GMT
+Server: FileServer/1.0
+Last-Modified: Tue, 10 Sep 2024 18:20:30 GMT
+ETag: "508c7f2-b2"
+Accept-Ranges: bytes
+Content-Length: 178
+Content-Type: text/html
+
+<html>
+<head>
+<title>dir2</title>
+</head>
+<body>
+<ul>
+<li><b><i><a href="dir3/">dir3</a></i></b></li>
+<li><a href="send.txt">send.txt</a></li>
+</ul>
+</body>
+</html>
+
+
