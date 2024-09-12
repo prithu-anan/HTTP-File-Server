@@ -10,6 +10,7 @@ public class Worker extends Thread {
     Socket socket;
     final BufferedWriter bw;
     static final String ROOT_DIR = "root/";
+    static final String UPLOAD_DIR = "upload/";
     static final int CHUNK_SIZE = 4096;
 
     public Worker(Socket socket, BufferedWriter bw) {
@@ -37,42 +38,66 @@ public class Worker extends Thread {
 
         String requestLine = in.readLine();
 
-        if(requestLine != null) {
-            String headerLine;
-            StringBuilder headers;
-            headers = new StringBuilder();
-
-            while (!(headerLine = in.readLine()).isEmpty()) {
-                headers.append(headerLine).append("\r\n");
-            }
-
+        if (requestLine != null) {
             synchronized (bw) {
                 bw.write(requestLine);
-                bw.newLine();
-//                bw.write(headers.toString());
-                bw.newLine();
+                bw.write("\r\n");
+                bw.write("\r\n");
                 bw.flush();
             }
         }
-
-        if (requestLine == null || !requestLine.startsWith("GET")) {
+        else {
             sendErrorResponse(pr, "400 Bad Request", date);
             return;
         }
 
         String[] requestParts = requestLine.split(" ");
         String filePath = requestParts[1];
-        File file = new File(ROOT_DIR + filePath);
 
-        if (file.isDirectory())
-            sendDirectoryListing(pr, file, date, dateFormat);
-        else if (file.exists())
-            sendFileResponse(out, file, date, dateFormat);
-        else
-            sendErrorResponse(pr, "404 Not Found", date);
+        if (requestLine.startsWith("GET")) {
+            File file = new File(ROOT_DIR + filePath);
+
+            if (file.isDirectory())
+                sendDirectoryListing(pr, file, date, dateFormat);
+            else if (file.exists())
+                sendFileResponse(out, file, date, dateFormat);
+            else
+                sendErrorResponse(pr, "404 Not Found", date);
+        } else if (requestLine.startsWith("UPLOAD")) {
+            File uploadDir = new File(UPLOAD_DIR);
+            if (!uploadDir.exists()) {
+                boolean created = uploadDir.mkdirs();
+                if (!created) {
+                    System.out.println("Failed to create upload directory.");
+                    return;
+                }
+            }
+
+            File file = new File(UPLOAD_DIR + filePath);
+
+            try (FileOutputStream fos = new FileOutputStream(file)) {
+                byte[] buffer = new byte[CHUNK_SIZE];
+                int bytesRead;
+
+                InputStream inputStream = socket.getInputStream();
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    fos.write(buffer, 0, bytesRead);
+                }
+
+                fos.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+                sendErrorResponse(pr, "500 Internal Server Error", date);
+            }
+
+            System.out.println("File received: " + filePath);
+        } else {
+            sendErrorResponse(pr, "501 Not Implemented", date);
+        }
 
         socket.close();
     }
+
 
     private void sendFileResponse(OutputStream out, File file, String date, SimpleDateFormat dateFormat) throws IOException {
         String contentType = Files.probeContentType(file.toPath());
