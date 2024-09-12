@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a97e142-cf74-4ee5-8434-57b663b237e4" name="Changes" comment="Trying to Solve Socket Closing Error">
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="6a97e142-cf74-4ee5-8434-57b663b237e4" name="Changes" comment="Added Newlines to html elements">
+      <change beforePath="$PROJECT_DIR$/src/HTTPServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/HTTPServer.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Worker.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Worker.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -85,7 +84,7 @@
       <option name="presentableId" value="Default" />
       <updated>1725990151092</updated>
       <workItem from="1725990152211" duration="4299000" />
-      <workItem from="1726059204829" duration="31628000" />
+      <workItem from="1726059204829" duration="32600000" />
     </task>
     <task id="LOCAL-00001" summary="Added Threading to HTTPServer">
       <option name="closed" value="true" />
@@ -103,7 +102,15 @@
       <option name="project" value="LOCAL" />
       <updated>1726135569341</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Added Newlines to html elements">
+      <option name="closed" value="true" />
+      <created>1726137171520</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1726137171520</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -112,6 +119,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Added Threading to HTTPServer" />
     <MESSAGE value="Trying to Solve Socket Closing Error" />
-    <option name="LAST_COMMIT_MESSAGE" value="Trying to Solve Socket Closing Error" />
+    <MESSAGE value="Added Newlines to html elements" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added Newlines to html elements" />
   </component>
 </project>

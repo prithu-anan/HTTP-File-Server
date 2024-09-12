@@ -16,6 +16,12 @@ public class HTTPServer {
 
             while (true) {
                 Socket socket = serverConnect.accept();
+
+                String clientHost = socket.getInetAddress().getHostAddress();
+                int clientPort = socket.getPort();
+
+                System.out.println("Client connected from host: " + clientHost + " and port: " + clientPort);
+
                 Thread worker = new Worker(socket, bw);
                 worker.start();
             }

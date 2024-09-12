@@ -84,7 +84,7 @@ public class Worker extends Thread {
         long contentLength = file.length();
         String eTag = "\"" + Integer.toHexString(file.hashCode()) + "-" + Long.toHexString(contentLength) + "\"";
 
-        StringBuilder response = getStringBuilder(file, date, lastModified, contentLength, eTag, contentType);
+        StringBuilder response = getStringBuilder(date, lastModified, contentLength, eTag, contentType);
 
         synchronized (bw) {
             bw.write(response.toString());
@@ -112,24 +112,29 @@ public class Worker extends Thread {
         StringBuilder body = new StringBuilder();
 
         body.append("<html>\r\n");
-        body.append("<head>\r\n");
-        body.append("<title>").append(dir.getName()).append("</title>\r\n");
-        body.append("</head>\r\n");
-        body.append("<body>\r\n");
-        body.append("<ul>\r\n");
+        body.append("\t<head>\r\n");
+        body.append("\t\t<title>").append(dir.getName()).append("</title>\r\n");
+        body.append("\t</head>\r\n");
+        body.append("\t<body>\r\n");
+        body.append("\t\t<ul>\r\n");
+
         for (File file : Objects.requireNonNull(dir.listFiles())) {
             if (file.isDirectory())
-                body.append("<li><b><i><a href=\"").append(file.getName()).append("/\">").append(file.getName()).append("</a></i></b></li>\r\n");
+                body.append("\t\t\t<li><b><i><a href=\"").append(file.getName()).append("/\">").append(file.getName()).append("</a></i></b></li>\r\n");
             else
-                body.append("<li><a href=\"").append(file.getName()).append("\">").append(file.getName()).append("</a></li>\r\n");
+                body.append("\t\t\t<li><a href=\"").append(file.getName()).append("\">").append(file.getName()).append("</a></li>\r\n");
         }
-        body.append("</ul>\r\n</body>\r\n</html>\r\n\r\n");
+
+        body.append("\t\t</ul>\r\n");
+        body.append("\t</body>\r\n");
+        body.append("</html>\r\n");
+        body.append("\r\n");
 
         String lastModified = dateFormat.format(new Date(dir.lastModified()));
         long contentLength = body.toString().length();
         String eTag = "\"" + Integer.toHexString(dir.hashCode()) + "-" + Long.toHexString(contentLength) + "\"";
 
-        StringBuilder response = getStringBuilder(dir, date, lastModified, contentLength, eTag, "text/html");
+        StringBuilder response = getStringBuilder(date, lastModified, contentLength, eTag, "text/html");
         response.append(body);
 
         synchronized (bw) {
@@ -142,7 +147,7 @@ public class Worker extends Thread {
         pr.flush();
     }
 
-    private static StringBuilder getStringBuilder(File dir, String date, String lastModified, long contentLength, String eTag, String contentType) {
+    private static StringBuilder getStringBuilder(String date, String lastModified, long contentLength, String eTag, String contentType) {
         return new StringBuilder(
                             "HTTP/1.0 200 OK\r\n" +
                             "MIME-Version: 1.0\r\n" +
@@ -162,12 +167,16 @@ public class Worker extends Thread {
                             "MIME-Version: 1.0\r\n" +
                             "Date: " + date + "\r\n" +
                             "Server: FileServer/1.0\r\n" +
+                            "Accept-Ranges: bytes\r\n" +
                             "Content-Type: text/html\r\n" +
                             "\r\n" +
                             "<html>\r\n" +
-                            "<body>\r\n" +
-                            "<h1>" + status + "</h1>\r\n" +
-                            "</body>\r\n" +
+                            "\t<head>\r\n" +
+                            "\t\t<title>" + status + "</title>\r\n" +
+                            "\t</head>\r\n" +
+                            "\t<body>\r\n" +
+                            "\t\t<h1>" + status + "</h1>\r\n" +
+                            "\t</body>\r\n" +
                             "</html>\r\n";
 
         synchronized (bw) {
